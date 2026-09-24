@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Projeto Óculos // M0</title>
+  <style>
+    :root { color-scheme: dark; --bg:#070a0f; --panel:#0e141d; --line:#263446; --txt:#e9f0f7; --muted:#8fa3b8; --ok:#65d6a6; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:14px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; background:radial-gradient(circle at top,#101827 0,#070a0f 48%); color:var(--txt); min-height:100vh; }
+    header { padding:28px 32px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:16px; align-items:end; }
+    h1 { margin:0; font-size:22px; letter-spacing:.08em; }
+    .sub { color:var(--muted); margin-top:6px; }
+    .pill { border:1px solid #285a49; color:var(--ok); padding:6px 10px; border-radius:999px; }
+    main { padding:24px 32px; max-width:1200px; margin:auto; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:16px; }
+    .card { background:linear-gradient(180deg,#111925,#0c121a); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 18px 45px #0007; }
+    .row { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .id { font-size:18px; font-weight:700; }
+    .cap { display:inline-block; border:1px solid #31455d; padding:3px 7px; border-radius:999px; margin:3px 4px 3px 0; color:#c7d8ea; font-size:12px; }
+    .telemetry { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0; }
+    .metric { background:#090e15; border:1px solid #1d2a3a; border-radius:9px; padding:10px; }
+    .metric b { display:block; font-size:16px; margin-top:3px; }
+    input { width:100%; background:#080d13; border:1px solid #304054; color:var(--txt); border-radius:8px; padding:10px; outline:none; }
+    button { margin-top:8px; width:100%; padding:10px; border:0; border-radius:8px; background:#d9e8fb; color:#08101a; font-weight:800; cursor:pointer; }
+    button:hover { filter:brightness(1.08); }
+    .empty { color:var(--muted); text-align:center; padding:80px 20px; border:1px dashed #27384c; border-radius:14px; }
+    #events { margin-top:18px; color:var(--muted); white-space:pre-wrap; max-height:180px; overflow:auto; }
+  </style>
+</head>
+<body>
+<header>
+  <div><h1>PROJETO ÓCULOS // HOST M0</h1><div class="sub">sensor/display peripheral ↔ cyberdeck intelligence</div></div>
+  <div class="pill" id="status">HOST ONLINE</div>
+</header>
+<main>
+  <div id="devices" class="grid"></div>
+  <pre id="events"></pre>
+</main>
+<script>
+const devicesEl = document.getElementById('devices');
+const eventsEl = document.getElementById('events');
+
+function esc(v){ return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function render(devices){
+  if(!devices.length){ devicesEl.innerHTML = '<div class="empty">Nenhum óculos conectado.<br>Execute <b>python simulator/mock_glasses.py</b>.</div>'; return; }
+  devicesEl.innerHTML = devices.map(d => {
+    const t = d.telemetry || {};
+    return `<section class="card">
+      <div class="row"><div class="id">${esc(d.device_id)}</div><div class="pill">CONECTADO</div></div>
+      <div class="sub">firmware ${esc(d.firmware || 'n/a')}</div>
+      <div style="margin:12px 0">${(d.capabilities||[]).map(c=>`<span class="cap">${esc(c)}</span>`).join('')}</div>
+      <div class="telemetry">
+        <div class="metric">Bateria<b>${esc(t.battery_pct ?? '--')}%</b></div>
+        <div class="metric">RSSI<b>${esc(t.rssi_dbm ?? '--')} dBm</b></div>
+        <div class="metric">Temp.<b>${esc(t.temperature_c ?? '--')} °C</b></div>
+        <div class="metric">Uptime<b>${esc(t.uptime_s ?? '--')} s</b></div>
+      </div>
+      <input id="hud-${esc(d.device_id)}" placeholder="Texto para o HUD" maxlength="240" />
+      <button onclick="sendHud('${esc(d.device_id)}')">Enviar HUD</button>
+    </section>`;
+  }).join('');
+}
+
+async function sendHud(id){
+  const input = document.getElementById('hud-'+id);
+  const text = input.value.trim();
+  if(!text) return;
+  const r = await fetch('/api/devices/'+encodeURIComponent(id)+'/hud', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  const j = await r.json();
+  eventsEl.textContent = JSON.stringify(j,null,2) + '\n' + eventsEl.textContent;
+}
+
+const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${wsProto}//${location.host}/ws/ui`);
+ws.onmessage = ev => {
+  const msg = JSON.parse(ev.data);
+  if(msg.type === 'snapshot') render(msg.devices || []);
+  if(msg.type === 'device_event') eventsEl.textContent = JSON.stringify(msg,null,2) + '\n' + eventsEl.textContent;
+};
+ws.onclose = () => document.getElementById('status').textContent = 'UI DESCONECTADA';
+</script>
+</body>
+</html>
