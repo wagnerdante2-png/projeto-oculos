@@ -61,4 +61,4 @@ O dispositivo `mock-001` aparecerá no painel. Envie um texto pelo botão **Envi
 
 ## Licença
 
-Código original deste repositório: Apache-2.0. Dependências e projetos de referência mantêm suas próprias licenças.
+Licença do código original: **a definir**. Projetos de referência e dependências mantêm suas próprias licenças; nenhuma licença será presumida quando não estiver explicitamente publicada.
