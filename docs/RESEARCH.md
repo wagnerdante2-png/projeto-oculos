@@ -6,7 +6,7 @@ Este documento registra referências técnicas, não código incorporado.
 
 ### [OpenSQZ/OpenGlass](https://github.com/OpenSQZ/OpenGlass)
 
-Arquitetura 2026 muito alinhada ao projeto: ESP32-S3 no wearable e inferência multimodal local em um computador próximo. Publica firmware de câmera/PDM, host bridge, CAD/3MF/BOM e ferramentas de avaliação. Apache-2.0.
+Arquitetura 2026 muito alinhada ao projeto: ESP32-S3 no wearable e inferência multimodal local em um computador próximo. Publica firmware de câmera/PDM, host bridge, CAD/3MF/BOM e ferramentas de avaliação. **A licença precisa ser validada antes de qualquer reutilização de código; na verificação de 24/09/2026 não havia arquivo LICENSE acessível na raiz.**
 
 Uso no nosso projeto: **referência arquitetural primária** para a separação sensing/computing.
 
@@ -24,7 +24,7 @@ Uso: referência para arquitetura de firmware e separação por board adapters.
 
 ### [Mentra-Community/MentraOS](https://github.com/Mentra-Community/MentraOS)
 
-Sistema aberto para múltiplos óculos comerciais, com abstração de câmera/mic/display/speaker e apps. Apache-2.0.
+Sistema aberto para múltiplos óculos comerciais, com abstração de câmera/mic/display/speaker e apps. **MIT na verificação de 24/09/2026.**
 
 Uso: referência para o nosso **modelo de capacidades**; não será dependência obrigatória do MVP próprio.
 
